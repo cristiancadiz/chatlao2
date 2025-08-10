@@ -4,10 +4,13 @@ import os
 
 app = Flask(__name__)
 
-# Variables fijas para la prueba
-WHATSAPP_TOKEN = "EAAXvFXJwAB8BPKPGqmegFpDzZCJX4sVx7E9QoMgZAKCCmbBOgQFz8X9bjQ2HuvLMqX1HQQ6mDDiZAlStUhn26cjo1dqlpeXfo1fAFpdtbUr7g9ovZBM9PJgtvOAlVxMzR7s8N6ZCWh8clvoNReDt5te2P9Od2oFwOuveUMVcRTQ0BhUPjQ5Ynd8xaaUREK6KQWLgcQWxuDZCB0kzq9k74LUERQZC7qyiGvRZAw7kCVmkIuSsPWnpV0qRX0vhln3s"
-WHATSAPP_PHONE_NUMBER_ID = "1670250276847647"
-VERIFY_TOKEN = "clave123"  # Para la verificación inicial
+# Cargar variables desde el entorno
+WHATSAPP_TOKEN = os.getenv("WHATSAPP_TOKEN")
+WHATSAPP_PHONE_NUMBER_ID = os.getenv("WHATSAPP_PHONE_NUMBER_ID")
+VERIFY_TOKEN = os.getenv("VERIFY_TOKEN", "clave123")  # Por defecto "clave123" si no está definida
+
+if not WHATSAPP_TOKEN or not WHATSAPP_PHONE_NUMBER_ID:
+    raise Exception("Faltan variables de entorno: WHATSAPP_TOKEN o WHATSAPP_PHONE_NUMBER_ID")
 
 # Ruta para verificar el webhook
 @app.route("/webhook", methods=["GET"])
@@ -22,12 +25,10 @@ def webhook():
     data = request.get_json()
     print("Mensaje recibido:", data)
 
-    # Extraer el número y mensaje
     try:
         phone_number = data["entry"][0]["changes"][0]["value"]["messages"][0]["from"]
         message_body = data["entry"][0]["changes"][0]["value"]["messages"][0]["text"]["body"]
 
-        # Enviar respuesta
         send_message(phone_number, f"Recibí tu mensaje: {message_body}")
     except Exception as e:
         print("Error procesando el mensaje:", e)
